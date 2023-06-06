@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<!-- Version is set via Git tagging triggering the build and supplying that tag to `dotnet pack -p:Version`. -->
+		<Version>0.0.0-unset</Version>
+
+		<IsPackable>true</IsPackable>
+		<IncludeSymbols>false</IncludeSymbols>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<DevelopmentDependency>true</DevelopmentDependency>
+		<NoWarn>$(NoWarn);NU5128</NoWarn>
+		
+		<PackageId>PodNet.Blazor.TypedRoutes</PackageId>
+		<Product>PodNet.Blazor.TypedRoutes</Product>
+		<PackageVersion>$(Version)</PackageVersion>
+		<Authors>podNET-Hungary;szabogabor-podnet</Authors>
+		<Company>podNET Hungary</Company>
+		<Copyright>Copyright (c) 2023 podNET Hungary</Copyright>
+		<Description>An efficient and easy-to-use generator for strongly typed routes in Blazor. Given your component named `MyPage` with a route defined as `@page "/my-page/{id:int}"`, a typed method is generated via incremental Roslyn source generators in your IDE of choice as `public static string MyPage.PageUri(int id)`. This makes referencing components' routes from your code a breeze, as well as making them type-safe! TypedRoutes supports .NET 7+ projects, multiple routes per component, parametered and parameterless routes, `@page` directives in .razor and `[Route]` attributes in .cs files, efficient code gen and more!</Description>
+		<PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageReadMeFile>README.md</PackageReadMeFile>
+		<RepositoryUrl>https://github.com/podNET-Hungary/blazor-typed-routes</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>TypedRoutes, PodNet, Blazor, generator, @page, page, route, routes, router, routing, awesome</PackageTags>
+		<PackageReleaseNotes>https://github.com/podNET-Hungary/blazor-typed-routes/releases</PackageReleaseNotes>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" PrivateAssets="all" />
+		
+		<None Include="..\..\images\icon.png" Pack="true" PackagePath="" />
+		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<Target Name="NuGetPackAnalyzer" BeforeTargets="_GetPackageFiles">
+		<ItemGroup>
+			<None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+		</ItemGroup>
+	</Target>
+
+</Project>

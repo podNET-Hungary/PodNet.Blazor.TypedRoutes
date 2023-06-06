@@ -1,0 +1,68 @@
+﻿@page "/"
+
+<h1><code>PodNet.Blazor.TypedRoutes.Sample</code></h1>
+
+<p>Yo! This is a simple sample app to demonstrate how the above project generates typed routing code for Blazor components.</p>
+
+<p>In this project, there are a few components and various kinds/number of routes defined for them. Click on the name of the component below to see the code of the component and the relevant generated code.</p>
+
+@if (_components == null)
+    return;
+
+<hr />
+
+<div class="accordion" id="examples-accordion">
+    @foreach (var item in _components)
+    {
+        var route = item;
+        <section class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button @(route.Show ? "" : "collapsed")" @onclick="() => { foreach(var c in _components.Where(c => c != route)) c.Show = false; route.Show = !route.Show; }">
+                    @route.ComponentName
+                </button>
+            </h2>
+            <div class="accordion-collapse collapse @(route.Show ? "show" : "")">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>Razor</h3>
+                        <pre style="white-space: pre-wrap"><code>@route.Razor</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Generated</h3>
+                        <pre style="white-space: pre-wrap"><code>@route.Generated</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    IReadOnlyList<TypedRoute>? _components;
+
+    protected override void OnInitialized()
+    {
+        _components = GetType().Assembly.DefinedTypes.Where(t => t.ImplementedInterfaces.Contains(typeof(INavigableComponent))).Select((component, index) =>
+        {
+            if (component.FullName == null)
+                return null;
+            var razorStream = GetType().Assembly.GetManifestResourceStream($"{component.FullName}.razor");
+            var generatedStream = GetType().Assembly.GetManifestResourceStream($"PodNet.Blazor.TypedRoutes.Samples.Generated.PodNet.Blazor.TypedRoutes.PodNet.Blazor.TypedRoutes.TypedRoutesGenerator.{component.FullName.Replace('.', '_')}.g.cs");
+            var relativeName = component.FullName.Split("PodNet.Blazor.TypedRoutes.Samples.").ElementAtOrDefault(1);
+            if (razorStream == null || generatedStream == null || string.IsNullOrWhiteSpace(relativeName))
+                return null;
+            using var razorStreamReader = new StreamReader(razorStream);
+            using var generatedStreamReader = new StreamReader(generatedStream);
+
+            return new TypedRoute(relativeName, index, razorStreamReader.ReadToEnd(), generatedStreamReader.ReadToEnd())
+                {
+                    Show = index == 0
+                };
+        }).Where(c => c != null).Cast<TypedRoute>().ToList();
+    }
+
+    public record TypedRoute(string ComponentName, int Index, string Razor, string Generated)
+    {
+        public bool Show { get; set; }
+    };
+}
