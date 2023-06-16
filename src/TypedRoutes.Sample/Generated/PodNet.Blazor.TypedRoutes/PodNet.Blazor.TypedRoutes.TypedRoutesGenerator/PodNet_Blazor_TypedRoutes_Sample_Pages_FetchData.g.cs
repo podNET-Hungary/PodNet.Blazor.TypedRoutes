@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
 
-namespace PodNet.Blazor.TypedRoutes.Samples.Pages
+namespace PodNet.Blazor.TypedRoutes.Sample.Pages
 {
     partial class FetchData : IRoutableComponent, INavigableComponent
     {

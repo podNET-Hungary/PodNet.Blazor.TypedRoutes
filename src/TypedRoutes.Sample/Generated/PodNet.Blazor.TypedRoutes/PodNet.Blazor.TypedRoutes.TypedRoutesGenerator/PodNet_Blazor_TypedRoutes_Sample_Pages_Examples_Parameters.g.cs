@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
 
-namespace PodNet.Blazor.TypedRoutes.Samples.Pages.Examples
+namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 {
     partial class Parameters : IRoutableComponent
     {

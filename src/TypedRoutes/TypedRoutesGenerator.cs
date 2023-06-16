@@ -155,7 +155,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
         {
             var parameterless = page.Routes.FirstOrDefault(static r => r.Parameters.All(static p => p.IsOptional || p.IsCatchAll));
             var primaryRoute = parameterless ?? page.Routes[0];
-            var interfaces = parameterless == null ? new[] { "IRoutableComponent" } : new[] { "IRoutableComponent", "INavigableComponent" };
+            var interfaces = parameterless == null ? "IRoutableComponent" : "IRoutableComponent, INavigableComponent";
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine($$"""
@@ -169,7 +169,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
 
                 namespace {{page.Namespace}}
                 {
-                    partial class {{page.ClassName}} : {{string.Join(", ", interfaces)}}
+                    partial class {{page.ClassName}} : {{interfaces}}
                     {
                 """);
 
@@ -203,7 +203,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
             // We could try to be "smart" and defer generating in certain cases (or generate properties instead of methods where there are no parameters), but it's easier to reason about both at generation time and at usage time if all routes are available here, and be more explicit instead.
             // Same goes for optional method parameters, as changing the number of parameters in a route, even if optional, should be a breaking change at the consuming site.
             // It's not reasonable to statically type out the interface for these methods, because the number (ID) of the route differs and the number and type of parameters differ as well for each generated method. So while it would be possible to do, not much can be gained by having a strongly typed IPageRoutableComponent5<string, string, int>.
-            if (page.Routes.Length > 1 || parameterless?.Parameters.Length > 0)
+            if (page.Routes.Length > 1 || primaryRoute.Parameters.Length > 0)
             {
                 for (int routeNumber = 1; routeNumber <= page.Routes.Length; routeNumber++)
                 {

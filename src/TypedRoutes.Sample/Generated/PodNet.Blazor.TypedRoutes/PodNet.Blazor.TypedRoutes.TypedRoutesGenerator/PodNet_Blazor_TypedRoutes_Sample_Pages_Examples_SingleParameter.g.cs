@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
 
-namespace PodNet.Blazor.TypedRoutes.Samples.Pages.Examples
+namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 {
     partial class SingleParameter : IRoutableComponent
     {
@@ -20,6 +20,12 @@ namespace PodNet.Blazor.TypedRoutes.Samples.Pages.Examples
         /// </summary>
         public static IReadOnlyList<string> AllPageRouteTemplates { get; } = ImmutableArray.Create("/examples/single-parameter/{stub}");
 
+        /// <summary>
+        /// Returns the URI for the page constructed from the template <c>"/examples/single-parameter/{stub}"</c> with
+        /// the provided parameters.
+        /// </summary>
+        public static string PageUri(string stub) => $"/examples/single-parameter/{Uri.EscapeDataString(stub)}";
+            
     }
 }
 #nullable restore
