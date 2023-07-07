@@ -107,7 +107,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                     @namespace = input.Build.RootNamespace;
             }
 
-            var @className = Path.GetFileNameWithoutExtension(input.AdditionalText.Path);
+            var @className = Path.GetFileNameWithoutExtension(input.AdditionalText.Path).Replace('-', '_');
             if (typeparam != null)
                 @className += $"<{typeparam}>";
 

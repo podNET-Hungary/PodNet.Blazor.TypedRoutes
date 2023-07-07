@@ -4,14 +4,14 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<!-- Version is set via Git tagging triggering the build and supplying that tag to `dotnet pack -p:Version`. -->
-		<Version>0.0.0-unset</Version>
+		<Version Condition="('$(Version)' == '') And ('$(Configuration)' == 'Debug')">0.0.0-debug</Version>
 
 		<IsPackable>true</IsPackable>
 		<IncludeSymbols>false</IncludeSymbols>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<DevelopmentDependency>true</DevelopmentDependency>
 		<NoWarn>$(NoWarn);NU5128</NoWarn>
-		
+
 		<PackageId>PodNet.Blazor.TypedRoutes</PackageId>
 		<Product>PodNet.Blazor.TypedRoutes</Product>
 		<PackageVersion>$(Version)</PackageVersion>
@@ -33,7 +33,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" PrivateAssets="all" />
-		
+
 		<None Include="..\..\images\icon.png" Pack="true" PackagePath="" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="" />
 	</ItemGroup>

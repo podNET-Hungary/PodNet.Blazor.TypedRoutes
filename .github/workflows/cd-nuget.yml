@@ -1,4 +1,4 @@
-on: { push: { tags: ["*"] } }
+on: { push: { tags: ["v[0-9]+.[0-9]+.[0-9]+*"] } }
     
 jobs:
   publish:
@@ -6,6 +6,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
-      - run: dotnet pack -c:Release -p:Version=${{ github.ref_name }} -p:RepositoryCommit=${{ github.sha }}
-      - env: { NUGET_API_KEY: "${{ secrets.NUGET_API_KEY }}" }
-        run: dotnet nuget push ./src/TypedRoutes/bin/Release/PodNet.Blazor.TypedRoutes.*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
+      - run: dotnet pack -c:Release -p:Version=$(echo ${{ github.ref_name }} | sed 's/^v//') -p:RepositoryCommit=${{ github.sha }}
+      - run: dotnet nuget push ./src/TypedRoutes/bin/Release/PodNet.Blazor.TypedRoutes.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
