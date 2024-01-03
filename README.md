@@ -27,6 +27,25 @@ I don't think there are many people that use Blazor that need convincing of the 
  
 The logic for generating a primary `PageUri` property or method and additional methods (when there are multiple routes) is a bit opinionated, but it should "just work" for most scenarios without you having to configure or modify anything.
 
+<hr>
+
+If you have any issues after installing the package, confirm that the relevant `<PackageReference>` includes and does not exlude the `compile;runtime;analyzers` assets in your `.csproj` file:
+
+```xml
+<!-- By default, "all" assets are included, which is a code generator (analyzer) and a very small assembly that contains some core interfaces. In most cases, this is what you would want. -->
+<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}" />
+
+<!-- This is the minimum that's needed for the code generator to work and the generated interfaces to be visible. -->
+<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
+                  IncludeAssets="analyzers;compile;runtime" /> 
+
+<!-- If you only need the code generator, you can omit the compilation dependency. You would have to define the relevant symbols yourself. -->
+<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
+                  IncludeAssets="analyzers" />
+```
+
+You can also configure if you don't want other projects referencing your project to also include the analyzer or the compile and runtime dependency to be visible to them (transiently) by including them in the `PrivateAssets` property. More info: [PackageReference in project files # Controlling dependency assets | Microsoft Learn](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets).
+
 ### Example: parameterless routes
  
 In an example project named `MyExampleBlazorApp`, using the well-known `FetchData` component from the default project template which defines `@page "/fetchdata"` as its route template, the generated code for the component is as follows:
