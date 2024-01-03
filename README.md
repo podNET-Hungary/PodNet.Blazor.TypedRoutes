@@ -7,10 +7,10 @@ An efficient and easy-to-use generator for strongly typed routes in Blazor.
 I don't think there are many people that use Blazor that need convincing of the advantages of strong typing. Blazor, by default, doesn't apply strong typing to the routes defined in .razor files or component classes. You can define your component's route to be at `/my-component`, then pass that magic `/my-component` string around as if it was no one else's business! Then, just *hope* nobody changes the route of the component for whatever reason and breaks something seemingly unrelated. But, what if you could simply refer to the URL in a strongly typed manner, like `<a href="@MyComponent.PageUri">My component</a>`? Look no further, here's **PodNet.Blazor.TypedRoutes** to satiate all your strongly-typed component route needs!
 
 ## Support and features
-- All Blazor hosting models (Blazor WebAssembly, Blazor Server, ASP.NET Core hosted Blazor WASM, hybrid with MAUI, etc.).
-- .NET 7+
+- All Blazor hosting models (Blazor Web, Blazor WebAssembly, Blazor Server, ASP.NET Core hosted Blazor WASM, hybrid with MAUI, etc.).
+- .NET 8+
 - dotnet CLI, VS Code or Visual Studio 2022+
-- Supports trimming for small file sizes, and adds no runtime dependencies whatsoever
+- Supports trimming for small file sizes
 - Any number of `@page` directives and `[Route]` attributes for defining routes to be picked up, and even mix-and-match the two approaches if you want in your project, even in split code+markup components
 - Supports all [Blazor route constraints (types)](https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/routing), optional/nullable and catch-all parameters, multiple routes per component
 - The generated code is self-documenting with XML comments, so that you can see the discrete values they refer to when using IntelliSense
