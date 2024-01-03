@@ -42,13 +42,13 @@
 
     protected override void OnInitialized()
     {
-        _components = GetType().Assembly.DefinedTypes.Where(t => t.ImplementedInterfaces.Contains(typeof(INavigableComponent))).Select((component, index) =>
+        _components = GetType().Assembly.DefinedTypes.Where(t => t.ImplementedInterfaces.Any(i => i == typeof(INavigableComponent) || i == typeof(IRoutableComponent))).Select((component, index) =>
         {
             if (component.FullName == null)
                 return null;
             var razorStream = GetType().Assembly.GetManifestResourceStream($"{component.FullName}.razor");
-            var generatedStream = GetType().Assembly.GetManifestResourceStream($"PodNet.Blazor.TypedRoutes.Samples.Generated.PodNet.Blazor.TypedRoutes.PodNet.Blazor.TypedRoutes.TypedRoutesGenerator.{component.FullName.Replace('.', '_')}.g.cs");
-            var relativeName = component.FullName.Split("PodNet.Blazor.TypedRoutes.Samples.").ElementAtOrDefault(1);
+            var generatedStream = GetType().Assembly.GetManifestResourceStream($"PodNet.Blazor.TypedRoutes.Sample.Generated.PodNet.Blazor.TypedRoutes.PodNet.Blazor.TypedRoutes.TypedRoutesGenerator.{component.FullName.Replace('.', '_')}.g.cs");
+            var relativeName = component.FullName.Split("PodNet.Blazor.TypedRoutes.Sample.").ElementAtOrDefault(1);
             if (razorStream == null || generatedStream == null || string.IsNullOrWhiteSpace(relativeName))
                 return null;
             using var razorStreamReader = new StreamReader(razorStream);

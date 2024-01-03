@@ -8,7 +8,7 @@ using PodNet.Blazor.TypedRoutes;
 
 namespace PodNet.Blazor.TypedRoutes.Sample.Pages
 {
-    partial class Index : IRoutableComponent, INavigableComponent
+    partial class Home : IRoutableComponent, INavigableComponent
     {
         /// <summary>
         /// The primary route template for the component, the constant string <c>"/"</c>.
