@@ -9,10 +9,10 @@
 		<icon>icon.png</icon>
 		<readme>README.md</readme>
 		<description>An efficient and easy-to-use generator for strongly typed routes in Blazor. Given your component named `MyPage` with a route defined as `@page "/my-page/{id:int}"`, a typed method is generated via incremental Roslyn source generators in your IDE of choice as `public static string MyPage.PageUri(int id)`. This makes referencing components' routes from your code a breeze, as well as making them type-safe! TypedRoutes supports .NET 7+ projects, multiple routes per component, parametered and parameterless routes, `@page` directives in .razor and `[Route]` attributes in .cs files, efficient code gen and more!</description>
-		<releaseNotes>https://github.com/podNET-Hungary/blazor-typed-routes/releases</releaseNotes>
+		<releaseNotes>https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/releases</releaseNotes>
 		<copyright>Copyright (c) 2024 podNET Hungary</copyright>
 		<tags>TypedRoutes, PodNet, Blazor, generator, @page, page, route, routes, router, routing, awesome</tags>
-		<repository type="git" url="https://github.com/podNET-Hungary/blazor-typed-routes" commit="$repositorycommit$" />
+		<repository type="git" url="https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes" commit="$repositorycommit$" />
 		<dependencies>
 			<group targetFramework="net8.0" />
 		</dependencies>
