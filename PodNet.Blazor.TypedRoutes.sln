@@ -5,18 +5,23 @@ VisualStudioVersion = 17.7.33711.374
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PodNet.Blazor.TypedRoutes", "src\TypedRoutes\PodNet.Blazor.TypedRoutes.csproj", "{C6E8CD66-EF40-4382-8B7C-402F59E94FC9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64F04A33-0DAF-432B-ACC2-D74388B85C49}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".root", ".root", "{64F04A33-0DAF-432B-ACC2-D74388B85C49}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		.github\workflows\cd-nuget.yml = .github\workflows\cd-nuget.yml
 		Directory.Build.props = Directory.Build.props
 		global.json = global.json
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PodNet.Blazor.TypedRoutes.Sample", "src\TypedRoutes.Sample\PodNet.Blazor.TypedRoutes.Sample.csproj", "{2CA8DE51-7AE6-4FB6-B2B4-134788E1A728}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4EC4428E-9F84-48B5-B6C3-329AC4B57E01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PodNet.Blazor.TypedRoutes.Core", "src\TypedRoutes.Core\PodNet.Blazor.TypedRoutes.Core.csproj", "{010DF375-8223-41C4-93A3-63537A1F1A6B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{CD07DD72-AE91-4359-83C0-C10922159D09}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PodNet.Blazor.TypedRoutes.Sample", "..\..\..\source\podNET-Hungary\PodNet.Blazor.TypedRoutes\sample\TypedRoutes.Sample\PodNet.Blazor.TypedRoutes.Sample.csproj", "{2E4717FB-8BAD-426F-9BF3-7159EF79AB61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PodNet.Blazor.TypedRoutes.Generator", "src\TypedRoutes.Generator\PodNet.Blazor.TypedRoutes.Generator.csproj", "{7197DCBD-7500-4396-ACC3-1664C7163C77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,17 +33,22 @@ Global
 		{C6E8CD66-EF40-4382-8B7C-402F59E94FC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6E8CD66-EF40-4382-8B7C-402F59E94FC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6E8CD66-EF40-4382-8B7C-402F59E94FC9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2CA8DE51-7AE6-4FB6-B2B4-134788E1A728}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CA8DE51-7AE6-4FB6-B2B4-134788E1A728}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CA8DE51-7AE6-4FB6-B2B4-134788E1A728}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CA8DE51-7AE6-4FB6-B2B4-134788E1A728}.Release|Any CPU.Build.0 = Release|Any CPU
-		{010DF375-8223-41C4-93A3-63537A1F1A6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{010DF375-8223-41C4-93A3-63537A1F1A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{010DF375-8223-41C4-93A3-63537A1F1A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{010DF375-8223-41C4-93A3-63537A1F1A6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E4717FB-8BAD-426F-9BF3-7159EF79AB61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E4717FB-8BAD-426F-9BF3-7159EF79AB61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E4717FB-8BAD-426F-9BF3-7159EF79AB61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E4717FB-8BAD-426F-9BF3-7159EF79AB61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7197DCBD-7500-4396-ACC3-1664C7163C77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7197DCBD-7500-4396-ACC3-1664C7163C77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7197DCBD-7500-4396-ACC3-1664C7163C77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7197DCBD-7500-4396-ACC3-1664C7163C77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C6E8CD66-EF40-4382-8B7C-402F59E94FC9} = {4EC4428E-9F84-48B5-B6C3-329AC4B57E01}
+		{2E4717FB-8BAD-426F-9BF3-7159EF79AB61} = {CD07DD72-AE91-4359-83C0-C10922159D09}
+		{7197DCBD-7500-4396-ACC3-1664C7163C77} = {4EC4428E-9F84-48B5-B6C3-329AC4B57E01}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {53666E85-ECCF-4BF1-AD3A-EB6B4310BED8}

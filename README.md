@@ -1,4 +1,4 @@
-# PodNet.Blazor.TypedRoutes [![Nuget](https://img.shields.io/nuget/v/PodNet.Blazor.TypedRoutes)](https://www.nuget.org/packages/PodNet.Blazor.TypedRoutes/)
+﻿# PodNet.Blazor.TypedRoutes [![Nuget](https://img.shields.io/nuget/v/PodNet.Blazor.TypedRoutes)](https://www.nuget.org/packages/PodNet.Blazor.TypedRoutes/)
 
 An efficient and easy-to-use generator for strongly typed routes in Blazor.
 
@@ -39,7 +39,7 @@ If you have any issues after installing the package, confirm that the relevant `
 <PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
                   IncludeAssets="analyzers;compile;runtime" /> 
 
-<!-- If you only need the code generator, you can omit the compilation dependency. You would have to define the relevant symbols yourself. -->
+<!-- If you only need the code generator, you can omit the compilation dependency. You would have to define or reference the relevant symbols yourself. -->
 <PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
                   IncludeAssets="analyzers" />
 ```
@@ -292,3 +292,16 @@ Additional notes and known limitations:
 ## Shoutout
 
 A well-deserved shoutout and thanks goes to [KuraiAndras](https://github.com/KuraiAndras) for [BlazingRoute](https://github.com/KuraiAndras/BlazingRoute), which strongly inspired this package.
+
+
+## Contributing and Support
+
+This project is intended to be widely usable, but no warranties are provided. If you want to contact us, feel free to do so in the org's [[Discussions](https://github.com/podNET-Hungary/discussions)] or the project's [topic](https://github.com/orgs/podNET-Hungary/discussions/4), at our website at [podnet.hu](https://podnet.hu), or find us anywhere from [LinkedIn](https://www.linkedin.com/company/podnet-hungary/) to [Meetup](https://www.meetup.com/budapest-net-meetup/), [YouTube](https://www.youtube.com/@podNET) or [X](https://twitter.com/podNET_Hungary).
+
+Any kinds of contributions from issues to PRs and open discussions are welcome!
+
+Don't forget to give us a ⭐ if you like this repo (it's free to give kudos!) or share it on socials!
+
+## Sponsorship
+
+If you're using our work or like what you see, consider supporting us. Every bit counts. 🙏 [See here for more info.](https://github.com/podNET-Hungary/PodNet.NuGet.Core/blob/main/src/PodNet.NuGet.Core/build/SPONSORS.md)

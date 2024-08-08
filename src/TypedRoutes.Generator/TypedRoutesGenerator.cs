@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using PodNet.Analyzers.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,30 +20,29 @@ public class TypedRoutesGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var build = context.AnalyzerConfigOptionsProvider.Select(static (o, _) => new BuildInfo(
-            o.GlobalOptions.TryGetValue("build_property.rootnamespace", out var rootNamespace) ? rootNamespace : "ASP",
-            o.GlobalOptions.TryGetValue("build_property.msbuildprojectdirectory", out var projectDir) ? projectDir : ""));
+            o.GlobalOptions.GetRootNamespace() ?? "ASP",
+            o.GlobalOptions.GetProjectDirectory() ?? ""));
 
-        var classesWithRouteAttributes = context.SyntaxProvider.ForAttributeWithMetadataName(
+        var classesWithRouteAttributes = context.SyntaxProvider.ForAttributeWithMetadataName<DiagnosticsOrResults<RouteInfo>>(
             "Microsoft.AspNetCore.Components.RouteAttribute",
             static (node, _) => node is ClassDeclarationSyntax,
             static (context, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var symbol = (INamedTypeSymbol)context.TargetSymbol;
+                var className = symbol.Name;
                 var node = (ClassDeclarationSyntax)context.TargetNode;
+                if (!node.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)))
+                    return Diagnostic.Create(s_routedComponentShouldBePartialDescriptor, node.GetLocation(), className);
                 return new RouteInfo(
-                    node,
                     symbol.ContainingNamespace?.ToDisplayString() ?? "",
-                    symbol.Name,
-                    context.Attributes.Select(static a => a.ConstructorArguments[0].Value?.ToString()!).ToImmutableArray(),
-                    node.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)));
+                    className,
+                    context.Attributes.Select(static a => a.ConstructorArguments[0].Value?.ToString()!).ToImmutableArray());
             });
 
-        var nonPartialsWithRouteAttributes = classesWithRouteAttributes.Where(static r => !r.IsPartialClass);
-        context.RegisterSourceOutput(nonPartialsWithRouteAttributes,
-            static (context, routeInfo) => context.ReportDiagnostic(Diagnostic.Create(s_routedComponentShouldBePartialDescriptor, routeInfo.SyntaxNode!.GetLocation(), routeInfo.ClassName)));
+        context.ReportDiagnostics(classesWithRouteAttributes);
 
-        var partialsWithRouteAttributes = classesWithRouteAttributes.Where(static r => r.IsPartialClass).Collect();
+        var partialsWithRouteAttributes = classesWithRouteAttributes.SelectResults().Collect();
 
         var assemblyName = context.CompilationProvider.Select(static (c, _) => c.Assembly.ToDisplayString());
         var razorFiles = context.AdditionalTextsProvider.Where(static t => t.Path.EndsWith(".razor"));
@@ -53,8 +53,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 .ToLookup(static e => (e.Namespace, e.ClassName), static e => e.RouteTemplates)
                 .Select(static e => new PageInfo(e.Key.Namespace, e.Key.ClassName, e
                     .SelectMany(static ts => ts.Select(static t => new Route(t, s_routeParameters.Matches(t).Cast<Match>().Select(static m => new RouteParameter(m.Groups["type"].Value is { Length: > 0 } t ? t : "string", m.Groups["name"].Value, m.Groups["catchall"].Success, m.Groups["optional"].Success)).ToImmutableArray())))
-                    .ToImmutableArray())))
-            .WithComparer(PageInfo.s_comparer);
+                    .ToImmutableArray())));
 
         context.RegisterSourceOutput(pages, GenerateSourceOutput);
 
@@ -63,8 +62,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
         static IEnumerable<RouteInfo> GetRoutesFromPageDirectives((AdditionalText AdditionalText, BuildInfo Build) input, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var sourceText = input.AdditionalText.GetText(cancellationToken);
-            if (sourceText == null)
+            if (input.AdditionalText.GetText(cancellationToken) is not { } sourceText)
                 yield break;
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -75,12 +73,12 @@ public class TypedRoutesGenerator : IIncrementalGenerator
             {
                 var line = sourceText.ToString(textLine.Span);
                 cancellationToken.ThrowIfCancellationRequested();
-                if (typeparam == null && s_typeparamDirective.Match(line) is { Success: true } tpMatch)
-                    typeparam = tpMatch.Groups["typeparam"].Value;
-                if (@namespace == null && s_namespaceDirective.Match(line) is { Success: true } nsMatch)
-                    @namespace = nsMatch.Groups["namespace"].Value;
                 if (s_pageDirective.Match(line) is { Success: true } match)
                     templates.Add(match.Groups["template"].Value);
+                else if (typeparam == null && s_typeparamDirective.Match(line) is { Success: true } tpMatch)
+                    typeparam = tpMatch.Groups["typeparam"].Value;
+                else if (@namespace == null && s_namespaceDirective.Match(line) is { Success: true } nsMatch)
+                    @namespace = nsMatch.Groups["namespace"].Value;
             }
 
             if (templates.Count == 0)
@@ -90,33 +88,26 @@ public class TypedRoutesGenerator : IIncrementalGenerator
             {
                 if (string.IsNullOrWhiteSpace(input.Build.ProjectDirectory))
                     yield break;
-                var razorFileFolder = Path.GetFullPath(Path.GetDirectoryName(input.AdditionalText.Path));
-                var projectFolder = Path.GetFullPath(input.Build.ProjectDirectory);
-                if (razorFileFolder?.StartsWith(projectFolder) == true)
-                {
-                    var relativeNamespace = new string(razorFileFolder.Substring(projectFolder.Length)
-                        .Replace(Path.DirectorySeparatorChar, '.')
-                        .Trim('.')
-                        .Select(static c => char.IsWhiteSpace(c) ? '_' : c)
-                        .Where(static c => c is '_' or '.' || char.IsLetterOrDigit(c)).ToArray());
-                    @namespace = relativeNamespace.Length > 0 ? $"{input.Build.RootNamespace}.{relativeNamespace}" : input.Build.RootNamespace;
-                }
-                else
-                    @namespace = input.Build.RootNamespace;
-            }
 
-            var @className = Path.GetFileNameWithoutExtension(input.AdditionalText.Path).Replace('-', '_');
+                var relativePath = PathProcessing.GetRelativePath(input.Build.ProjectDirectory, Path.GetDirectoryName(input.AdditionalText.Path) ?? ".");
+                @namespace = TextProcessing.GetNamespace(relativePath?.Length > 0 && !relativePath.StartsWith("..") ? $"{input.Build.RootNamespace}.{relativePath}" : input.Build.RootNamespace);
+            }
+            else
+                @namespace = input.Build.RootNamespace;
+
+            var @className = TextProcessing.GetClassName(Path.GetFileNameWithoutExtension(input.AdditionalText.Path));
             if (typeparam != null)
                 @className += $"<{typeparam}>";
 
-            yield return new RouteInfo(null, @namespace, className, templates.ToImmutableArray(), false);
+            yield return new RouteInfo(@namespace, className, templates.ToImmutableArray());
         }
 
         static void GenerateSourceOutput(SourceProductionContext context, PageInfo page)
         {
             var parameterless = page.Routes.FirstOrDefault(static r => r.Parameters.All(static p => p.IsOptional || p.IsCatchAll));
-            var primaryRoute = parameterless ?? page.Routes[0];
-            var interfaces = parameterless == null ? "IRoutableComponent" : "IRoutableComponent, INavigableComponent";
+            var isParameterless = parameterless != default;
+            var primaryRoute = isParameterless ? parameterless : page.Routes[0];
+            var interfaces = isParameterless ? "IRoutableComponent, INavigableComponent" : "IRoutableComponent";
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine($$"""
@@ -147,7 +138,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
 
                 """);
 
-            if (parameterless != null)
+            if (isParameterless)
             {
                 // We already know parameterless has only optional or catch-all parameters (if any) as per the above check, so we can safely remove them (including the leading '/').
                 var uri = parameterless.Parameters.Length == 0 ? parameterless.Template : s_routeParameters.Replace(parameterless.Template, "");
@@ -169,7 +160,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 for (int routeNumber = 1; routeNumber <= page.Routes.Length; routeNumber++)
                 {
                     var route = page.Routes[routeNumber - 1];
-                    var routeId = parameterless == null && page.Routes.Length == 1 ? "" : routeNumber.ToString();
+                    var routeId = isParameterless || page.Routes.Length != 1 ? routeNumber.ToString() : "";
                     var parameters = string.Join(", ", route.Parameters.Select(static p => $"{p.TypeName}{(p.IsOptional || p.IsCatchAll ? "?" : "")} {p.Name}{(p.IsCatchAll ? " = null" : "")}"));
                     var returnValue = s_routeParameters.Replace(route.Template, static m =>
                     {

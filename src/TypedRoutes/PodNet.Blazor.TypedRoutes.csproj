@@ -1,25 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<!-- Version is set via Git tagging triggering the build and supplying that tag to `dotnet pack -p:Version`. -->
-		<Version Condition="('$(Version)' == '') And ('$(Configuration)' == 'Debug')">0.0.0-debug</Version>
+		<TargetFramework>net8.0</TargetFramework>
+		<Description>An efficient and easy-to-use generator for strongly typed routes in Blazor. Given your component named `MyPage` with a route defined as `@page "/my-page/{id:int}"`, a typed method is generated via incremental Roslyn source generators in your IDE of choice as `public static string MyPage.PageUri(int id)`. This makes referencing components' routes from your code a breeze, as well as making them type-safe! TypedRoutes supports .NET 8+ projects, multiple routes per component, parametered and parameterless routes, `@page` directives in .razor and `[Route]` attributes in .cs files, efficient code gen and more!</Description>
+		<PackageTags>TypedRoutes, PodNet, Blazor, generator, @page, page, route, routes, router, routing, awesome</PackageTags>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-		<IsPackable>true</IsPackable>
-		<IncludeSymbols>false</IncludeSymbols>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<DevelopmentDependency>true</DevelopmentDependency>
-		
-		<NuspecFile>PodNet.Blazor.TypedRoutes.nuspec</NuspecFile>
-		<NuspecProperties>version=$(Version);repositorycommit=$(RepositoryCommit);configuration=$(Configuration)</NuspecProperties>
+	<PropertyGroup>
+		<!-- Override defaults from PodNet.Analyzers.Core.props, because this package is not the generator that's packed directly. However, we need the ps1 scripts and analyzer runtime dependency. -->
+		<IsRoslynComponent>false</IsRoslynComponent>
+		<EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
+		<IncludeSymbols>true</IncludeSymbols>
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<PodNetIncludeAnalyzer>false</PodNetIncludeAnalyzer>
+		<PodNetIncludeAnalyzerCore>true</PodNetIncludeAnalyzerCore>
+		<PodNetIncludeLibPlaceholder>false</PodNetIncludeLibPlaceholder>
+		<DevelopmentDependency>false</DevelopmentDependency>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" PrivateAssets="all" />
+		<PackageReference Include="PodNet.NuGet.Core" Version="1.0.5" PrivateAssets="all" />
+		<PackageReference Include="PodNet.Analyzers.Core" Version="1.0.14" PrivateAssets="all" IncludeAssets="build" />
 
-		<ProjectReference Include="..\TypedRoutes.Core\PodNet.Blazor.TypedRoutes.Core.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+		<ProjectReference Include="..\TypedRoutes.Generator\PodNet.Blazor.TypedRoutes.Generator.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
+
+		<None Include="$(ArtifactsPath)/bin/PodNet.Blazor.TypedRoutes.Generator/$(Configuration)/PodNet.Blazor.TypedRoutes.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" LinkBase="analyzers/dotnet/cs" />
 	</ItemGroup>
+	
+	
 
 </Project>
