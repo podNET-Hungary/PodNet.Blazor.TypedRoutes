@@ -4,11 +4,11 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		
+
 		<!-- We emit the files into the Generated folder instead of letting the compiler pick them up from a temp folder. This is only so that the demo works and shows the files being generated. -->
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-			
+
 		<!-- This is only an "offline" demo project. You shouldn't publish this anywhere. If you do, re-enable security auditing. -->
 		<NuGetAudit>false</NuGetAudit>
 	</PropertyGroup>
@@ -21,8 +21,12 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" PrivateAssets="all" />
 
-		<!-- We reference the "live" package, so that it looks the same as if user code referenced it. -->
+		<!-- We reference the "live" package, just as if user code referenced it. -->
 		<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="1.0.0-beta6" />
 	</ItemGroup>
 
+	<Target Name="CleanGeneratedFolder" BeforeTargets="Restore;Clean">
+		<RemoveDir Directories="Generated" />
+		<MakeDir Directories="Generated" />
+	</Target>
 </Project>

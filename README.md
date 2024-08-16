@@ -19,17 +19,21 @@ I don't think there are many people that use Blazor that need convincing of the 
 
 ## Usage
 
-1. Install the [NuGet package](https://www.nuget.org/packages/PodNet.Blazor.TypedRoutes) to your Blazor app (all hosting models are supported).
+1. Install the [NuGet package](https://www.nuget.org/packages/PodNet.Blazor.TypedRoutes) to your Blazor app (all hosting models are supported). Use NuGet Package Manager, the .N
+    ```
+    > dotnet add package PodNet.Blazor.TypedRoutes
+    ```
 1. Define your page components as usual. Either:
 	a. use `@page` directives in .razor files, or
 	a. use `[Route]` attributes in .cs files - in this case, the class has to be `partial`.
-1. For each found route, a `static` member will be automatically generated for the component you can use by referring to the type itself. You don't need to do anything special for the generated code to appear, it'll automatically get refreshed as you type as needed, or be built when you run `dotnet build` from the command line.
+1. For each found route, a `static` member will be automatically generated for the component you can use by referring to the type itself. You don't need to do anything special for the generated code to appear, it'll automatically get refreshed as you type as needed, or be built when you run `dotnet build` from the command line. 
+    > Visual Studio sometimes takes a bit of time to pick up and/or run the generator correctly. It might be time for your unscheduled restart!
  
 The logic for generating a primary `PageUri` property or method and additional methods (when there are multiple routes) is a bit opinionated, but it should "just work" for most scenarios without you having to configure or modify anything.
 
 <hr>
 
-If you have any issues after installing the package, confirm that the relevant `<PackageReference>` includes and does not exlude the `compile;runtime;analyzers` assets in your `.csproj` file:
+If you have any issues after installing the package, confirm that the relevant `<PackageReference>` includes and does not exlude the `compile;analyzers` assets in your `.csproj` file:
 
 ```xml
 <!-- By default, "all" assets are included, which is a code generator (analyzer) and a very small assembly that contains some core interfaces. In most cases, this is what you would want. -->
@@ -37,7 +41,7 @@ If you have any issues after installing the package, confirm that the relevant `
 
 <!-- This is the minimum that's needed for the code generator to work and the generated interfaces to be visible. -->
 <PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
-                  IncludeAssets="analyzers;compile;runtime" /> 
+                  IncludeAssets="analyzers;compile" /> 
 
 <!-- If you only need the code generator, you can omit the compilation dependency. You would have to define or reference the relevant symbols yourself. -->
 <PackageReference Include="PodNet.Blazor.TypedRoutes" Version="{YourVersionHere}"
@@ -78,6 +82,10 @@ namespace MyExampleBlazorApp.Pages
 }
 ```
 
+> [!TIP]
+>
+> To view the generated code for your project in Visual Studio, navigate in Solution Explorer to your project's `Dependencies / Analyzers / PodNet.Blazor.TypedRoutes.Generator` node, where all generated files should be visible.
+
 Usage of these members is very useful in any place you'd refer to the page's URI. Instead of using the page's URL as a hardcoded value, you could instead, for example, modify the `Shared\NavMenu.razor` file from:
 
 ```razor
@@ -110,8 +118,7 @@ Consider these routes:
 @page "/items/{id}"
 @page "/items/{category}/{id:int}"
 @page "/items/{from:datetime}/{to:datetime?}"
-@page "/other-pages/{**catchAll}"
-
+@page "/other-pages/{*catchAll}"
 ```
 
 The following members would be generated for each, for the component class:
@@ -158,55 +165,52 @@ public static string PageUri4(string? catchAll = null) => $"/other-pages/{(catch
 ```
 
 Notice the following:
-- The `"other-pages/{**catchAll}"` route was "promoted" to be the primary route accessible via the `PageUri` property. That property is only available if there are any routes that have no or only optional (including catch-all) parameters. The property takes the first of these available, if any. So even though that route was the fourth, it became the "primary" route accessible via `PageUri`. This also made the primary `PageRouteTemplate` have the value of that route as well. Were there no parameterless routes available, there would be no `PageUri` property generated (only methods), and the `PageRouteTemplate` would take the value of the first available route.
-- If there is more than one route, there will be methods numbered from 1 through the number of routes available with the parameters for them with strongly typed parameters. The implementation is a bit opinionated, but essentially the default only "interpolates" the values into the URI.
+- The `"other-pages/{*catchAll}"` route was "promoted" to be the primary route accessible via the `PageUri` property. That property is only available if there are any routes that have no or only optional (including catch-all) parameters. The property takes the first of these available, if any. So even though that route was the fourth, it became the "primary" route accessible via `PageUri`. This also made the primary `PageRouteTemplate` have the value of that route as well. Were there no parameterless routes available, there would be no `PageUri` property generated (only methods), and the `PageRouteTemplate` would take the value of the first available route.
+- If there is more than one route, there will be methods numbered from 1 through the number of routes available with strongly typed parameters for them. The implementation is a bit opinionated, but it essentially only "interpolates" the values into the URI and replaces the parameters with the provided values.
 - The XML comments help you identify the route you wish to pick exactly in IntelliSense, by showing the route that is being constructed.
 
 ### Additional examples
 
-You can find additional examples in the [TypedRoutes.Sample](https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/tree/main/src/TypedRoutes.Sample) folder.
+You can find additional examples in the [TypedRoutes.Sample](https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/tree/main/src/TypedRoutes.Sample) project.
 
 You can simply clone the repo and test your scenario by adding/modifying components and routes to this project. Keep in mind, however, that this differs in a few key points from installing via NuGet:
-- The project is set to write all source generated code to the [Generated](https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/tree/main/src/TypedRoutes.Sample/Generated) folder. It is a good idea to delete the folder before doing a build this way to avoid any leftover files. This is only so that it is convenient to see the result of the generation on GitHub. It is not advised to store generated content this way in source control in app dev projects.
-- To see the result of the generation, you have to explicitly execute `Build` on the project via <kbd>F6</kbd> or `Build > Build > [Project]` / Right click > Build in Visual Studio, via command line or other means. This is NOT needed when referencing the NuGet package.
-- To view the generated code for your project in Visual Studio, navigate in Solution Explorer to your project's `Dependencies / Analyzers / PodNet.Blazor.TypedRoutes.Generator` node, where all generated files should be visible.
+- The demo project is set to write all source generated code to the [Generated](https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/tree/main/src/TypedRoutes.Sample/Generated) folder. It is a good idea to delete the folder before doing a build this way to avoid any leftover files. This is only so that it is convenient to see the result of the generation on GitHub. It is not advised to store generated content this way in source control in app dev projects.
 
 ### Extensibility overview
 
-You can take the routable component types and use strongly typed generics or typed components to take advantage of the power of C# and Razor. The generator always generates the following interfaces for your perusal:
+You can take the routable component types and use strongly typed generics or typed components to take advantage of the power of C# and Razor. The generator references following interfaces for your perusal:
 
 ```csharp
-// <auto-generated />
-#nullable enable
+namespace PodNet.Blazor.TypedRoutes;
 
-using System;
-using System.Collections.Generic;
-
-namespace PodNet.Blazor.TypedRoutes
+/// <summary>
+/// Represents a component that has a primary route, that is, a route with no required parameters.
+/// </summary>
+public interface INavigableComponent
 {
-    public interface IRoutableComponent
-    {
-        /// <summary>
-        /// Returns the page component's primary route template.
-        /// </summary>
-        public static abstract string PageRouteTemplate { get; }
-
-        /// <summary>
-        /// Returns all of the page component's route templates.
-        /// </summary>
-        public static abstract IReadOnlyList<string> AllPageRouteTemplates { get; }
-    }
-
-    public interface INavigableComponent
-    {
-        /// <summary>
-        /// Returns the absolute page URI: <c>"{uri}"</c>. This is only possible if the page has a 
-        /// primary route with no required parameters.
-        /// </summary>
-        public static abstract string PageUri { get; }
-    }
+    /// <summary>
+    /// Returns the absolute page URI: <c>"{uri}"</c>. This is only possible if the page has a 
+    /// primary route with no required parameters.
+    /// </summary>
+    public static abstract string PageUri { get; }
 }
-#nullable restore
+
+/// <summary>
+/// Represents a component that has at least one route defined.
+/// </summary>
+public interface IRoutableComponent
+{
+    /// <summary>
+    /// Returns the page component's primary route template.
+    /// </summary>
+    public static abstract string PageRouteTemplate { get; }
+
+    /// <summary>
+    /// Returns all of the page component's route templates.
+    /// </summary>
+    public static abstract IReadOnlyList<string> AllPageRouteTemplates { get; }
+}
+
 ```
 
 Your components will automatically implement these interfaces as you assign routes to your components. If your component has any routes, it'll implement `IRoutableComponent`, and if it has a parameterless route as well, it'll also implement `INavigableComponent`. You can use these abstractions as you want in user code. For example, you could write a component like so:
@@ -234,7 +238,7 @@ Which in turn renders the following:
 <a href="/fetchdata">FetchData</a>
 ```
 
-Notice that this is *so very strongly typed* that **it will only compile** if there's at least one parameterless route available for any given `T` component type. I think it's quite neat.
+Notice that this is *so very strongly typed* that **it will only compile** if there's at least one parameterless route available for any given `T` component type, so either has no parameters or all parameters are optional or catch-all. I think it's quite neat.
 
 You also *could*, theoretically, write something similar:
 
@@ -269,30 +273,35 @@ This is also the preferred method, because you can also use the generated method
 navigationManager.NavigateTo(Details.PageUri(id));
 ```
 
-This is why no additional ways are provided by this package for routing, but if you have a suggestion, don't hesitate to tell us in the discussions.
+This is why no additional ways are provided by this package for routing (like extensions for `NavigationManager` or a giant class containing all routes), but if you have a suggestion, don't hesitate to tell us in the discussions.
+
+This solution is also trim-friendly, as all types will define their own routes, and if you wish to refer to a route in a strongly typed way, you have to have a reference to the type.
 
 ## Limitations
 
 The .razor files are not *syntactically* or *semantically* analyzed in the same way the Razor Language Service does it. This mainly means that when defining a route in a .razor file, all lines of code that adhere to a specific regex pattern will be considered a match. Most limitations are derived from and are dependent on the [current limitation of the Roslyn source generators' architecture](https://github.com/dotnet/roslyn/issues/57239), where source generated code cannot depend on other source generated code.
 
 - If you comment out a `@page` directive with multiline comments, the route will still be generated for it if the directive is on its own line. You should consider removing the comment as a best practice for other reasons as well, for example as to not confuse build systems or code reviewers who only see line diffs in code comparison tools.
-- The `@attribute [Route]` directive to declare routes in .razor files is not supported. You can use any or all of the other approaches instead. If you wanted to define the templates in constants so that you can refer to them in `[Route]` attributes, it's worth considering to switch to the `@page` definition instead when using a .razor file, or just define the route in-place when using a class. This is because you'll get access to the page template constant values and the page URIs anyways when using this generator, so the only place you'll see the routes appear in your code is the declaration.
+- The `@attribute [Route]` directive to declare routes in .razor files is not supported. You can use any or all of the other approaches instead. If you wanted to define the templates in constants so that you can refer to them in `[Route]` attributes, it's worth considering to switch to the `@page` definition instead when using a .razor file, or just define the route in-place when using a class. This is because you'll get access to the page template constant values and the page URIs anyways when using this generator, so the only place you'll see the routes' magic string values appear in your code is the sole declaration. At least, preferably.
 
 Additional notes and known limitations:
 
-- This is a small project and testing it properly end-to-end would require an enterprise-grade setup and effort to match. As such, you can try and use the package "as-is", but feel free to fork, contribute, help with features, report any bugs or just comment or request features. We hope you like it, and we do use it in production, but we take no responsibility or offer no guarantees for your usage of this package.
-- Lazy-loading support is untested. It works by default in most cases, but might not work in all cases out of the box. Specifically, lazy-loading assembly boundaries might result in the assembly containing the generated code be unavailable when referenced. You should try and avoid referencing code directly over lazy-loading assembly boundaries in general.
-- The current formatting logic takes into account the type of the parameter: `string`s are escaped via `Uri.EscapeDataString` (as to prevent XSS), and `DateTime`s either get formatted as `yyyy-MM-dd` or `s` (`2008-06-15T21:15:07`) depending on whether their TimeOfDay is set or not. Also, `bool` gets formatted as either `true` or `false`, as this is more common to see on the open web. All other types (`decimal`, `double`, `float`, `guid`, `int`, `long`) simply get interpolated into the URI without modification, and thus, might depend on the current culture formatting. Let us know if you need additional control over how the parameters are formatted in the constructed URI.
+- This is a small project ~~and testing it properly end-to-end would require an enterprise-grade setup and effort to match~~ (well, let's just say there is an enterprise grade setup in place now 😬). As such, you can try and use the package "as-is", but feel free to fork, contribute, help with features, report any bugs or just comment or request features. We hope you like it, and we do use it in production, but we take no responsibility or offer no guarantees for your usage of this package.
+- Lazy-loading support is untested. It works by default in most cases, but might not work in all cases out of the box. Specifically, lazy-loading assembly boundaries might result in the assembly containing the generated code be unavailable when referenced. You should try and avoid referencing code directly over lazy-loading assembly boundaries in general. If you have a specific request regarding this, we're listening.
+- The current formatting logic takes into account the type of the parameter: `string`s are escaped via `Uri.EscapeDataString` (as to prevent XSS; except for catch-alls, where you should take care yourself not to inject unsafe code into the parameter), and `DateTime`s either get formatted as `yyyy-MM-dd` or `s` (`2008-06-15T21:15:07`) depending on whether their TimeOfDay is set or not. Also, `bool` gets formatted as either `true` or `false`, as this is more common to see on the open web than `True` and `False` (hey, even the keywords are lowercased in C#, what is this, VB?). All other types (`decimal`, `double`, `float`, `guid`, `int`, `long`) simply get interpolated into the URI without modification, and thus, might depend on the current culture formatting, especially DateTime, which gets formatted with the culture-specific `s` format if the `Time` component is zero. Let us know if you need additional control over how the parameters are formatted in the constructed URI.
 - The generation works by generating static members for the component type itself. It would be possible (quite easy, in fact) to move all generated members instead into a singular generated class, or multiple classes that mirror the namespace structure of the original components by their namespaces. However, we consider it more staightforward and logically coherent to assign the routes to the component type itself - after all, the `[Route]` attribute is put onto the type metadata as well, and that is a natural place one would look for this kind of information. Also, if you can already "see" a component type in code because it's namespace is in scope, you can simply access its URI as well. However, if you would need a different structure for the generated code, let's discuss it.
-- Invalid routes (eg. multiple catch-all parameters, invalid constraints, malformed strings) are not handled and might or might not emit helper code.
-- The generated code declares a primary `PageUri` URI if there is at least one route found with no parameters (or only optional parameters). If there are multiple routes or the only route has required parameters, additional methods are generated for each of the routes. These follow the pattern `PageUri{n}`, where `{n}` is a natural number incrementing starting from 1. We couldn't figure out a straightforward way to name multiple methods accordingly unless they are numbered, and overloading wouldn't be work either as there could be collisions based on the parameters. The order of the generated memers are ordered, as follows: .razor files' `@page` directives first, in order they appear in source, then the partial component class' `[Route]` attributes, in order they appear in source. If there's only one route, then a property or method is declared named `PageUri` based on if it has parameters or not.
-- A convenient side effect of generating "onto" the existing class is that you can simply refer to the component's current routes by writing `@PageUri` in the current razor file, because the .razor file's context is the type's BuildRenderTree method, which can obviously access to surrounding type's static members. We advise however to consider prepending the component type's name when accessing static members, so as to avoid any ambiguity, like so: `@FetchData.PageUri`.
-- There is currently no way to opt-out or modify the behavior of the generator from the user's end. This package is intentionally opinionated. However, there might be some additions or modifications down the line when additional configuration would be needed. As always, don't hesitate to let your thoughts known in the discussions.
+- Invalid routes (eg. multiple catch-all parameters, invalid constraints, malformed strings) are not handled and might or might not emit helper code. Usually if you have invalid routes, the Razor tooling will let you know.
+- The generated code declares a primary `PageUri` URI if there is at least one route found with no parameters (or only optional parameters). If there are multiple routes or the only route has required parameters, additional methods are generated for each of the routes. These follow the pattern `PageUri{n}`, where `{n}` is a natural number incrementing starting from 1. We couldn't figure out a straightforward way to name multiple methods accordingly unless they are numbered, and overloading wouldn't work either as there could be collisions based on the parameters. The order of the generated members are ordered, as follows:
+    1. .razor files' `@page` directives first, in order they appear in source,
+    2. then the partial component class' `[Route]` attributes, in order they appear in source.
+  
+  If there's only one route, then a property or method is declared named `PageUri` based on if it has parameters or not.
+- A convenient side effect of generating "onto" the existing class is that you can simply refer to the component's current routes by writing `@PageUri` in the current razor file, because the .razor file's context is the type's BuildRenderTree method, which can obviously access to surrounding type's static members. Consider prepending the component type's name when accessing static members, so as to avoid any ambiguity, like so: `@FetchData.PageUri`.
+- There is currently no way to opt-out or modify the behavior of the generator from the user's end. This package is intentionally opinionated. However, there might be some additions or modifications down the line when additional configuration would be needed. As always, don't hesitate to let your thoughts known in the [discussions](https://github.com/orgs/podNET-Hungary/discussions/4).
 
 ## Shoutout
 
 A well-deserved shoutout and thanks goes to [KuraiAndras](https://github.com/KuraiAndras) for [BlazingRoute](https://github.com/KuraiAndras/BlazingRoute), which strongly inspired this package.
-
 
 ## Contributing and Support
 
