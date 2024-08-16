@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace PodNet.Blazor.TypedRoutes;
+namespace PodNet.Blazor.TypedRoutes.Generator;
 
 [Generator(LanguageNames.CSharp)]
 public class TypedRoutesGenerator : IIncrementalGenerator
@@ -14,7 +14,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
     private static readonly Regex s_pageDirective = new("^\\s*@page\\s+\"(?<template>/.*)\"\\s*;?\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     private static readonly Regex s_namespaceDirective = new("^\\s*@namespace\\s+(?<namespace>[a-zA-Z_][a-zA-Z_0-9]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     private static readonly Regex s_typeparamDirective = new("^\\s*@typeparam\\s+(?<typeparam>[a-zA-Z_][a-zA-Z_0-9]*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-    internal static readonly Regex s_routeParameters = new("/(?<parameter>{(?<catchall>\\*)?(?<name>.+?)(:(?<type>bool|datetime|decimal|double|float|guid|int|long))?(?<optional>\\?)?})", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+    internal static readonly Regex s_routeParameters = new("/(?<parameter>{(?<catchall>\\*)?(?<name>.+?)(:(?<type>bool|datetime|decimal|double|float|guid|int|long|nonfile))?(?<optional>\\?)?})", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     private static readonly DiagnosticDescriptor s_routedComponentShouldBePartialDescriptor = new("PN1501", "Make component partial", "Add the 'partial' modifier to the class {0} so that typed routes can be generated for it", "Design", DiagnosticSeverity.Warning, true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -67,7 +67,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
 
             cancellationToken.ThrowIfCancellationRequested();
             string? @namespace = null;
-            string? typeparam = null;
+            var typeparams = new List<string>();
             var templates = new List<string>();
             foreach (var textLine in sourceText.Lines)
             {
@@ -75,8 +75,8 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 cancellationToken.ThrowIfCancellationRequested();
                 if (s_pageDirective.Match(line) is { Success: true } match)
                     templates.Add(match.Groups["template"].Value);
-                else if (typeparam == null && s_typeparamDirective.Match(line) is { Success: true } tpMatch)
-                    typeparam = tpMatch.Groups["typeparam"].Value;
+                else if (s_typeparamDirective.Match(line) is { Success: true } tpMatch)
+                    typeparams.Add(tpMatch.Groups["typeparam"].Value);
                 else if (@namespace == null && s_namespaceDirective.Match(line) is { Success: true } nsMatch)
                     @namespace = nsMatch.Groups["namespace"].Value;
             }
@@ -84,11 +84,8 @@ public class TypedRoutesGenerator : IIncrementalGenerator
             if (templates.Count == 0)
                 yield break;
 
-            if (@namespace == null)
+            if (@namespace == null && !string.IsNullOrWhiteSpace(input.Build.ProjectDirectory))
             {
-                if (string.IsNullOrWhiteSpace(input.Build.ProjectDirectory))
-                    yield break;
-
                 var relativePath = PathProcessing.GetRelativePath(input.Build.ProjectDirectory, Path.GetDirectoryName(input.AdditionalText.Path) ?? ".");
                 @namespace = TextProcessing.GetNamespace(relativePath?.Length > 0 && !relativePath.StartsWith("..") ? $"{input.Build.RootNamespace}.{relativePath}" : input.Build.RootNamespace);
             }
@@ -96,8 +93,8 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 @namespace = input.Build.RootNamespace;
 
             var @className = TextProcessing.GetClassName(Path.GetFileNameWithoutExtension(input.AdditionalText.Path));
-            if (typeparam != null)
-                @className += $"<{typeparam}>";
+            if (typeparams.Count > 0)
+                @className += $"<{string.Join(", ", typeparams)}>";
 
             yield return new RouteInfo(@namespace, className, templates.ToImmutableArray());
         }
@@ -132,7 +129,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                         public static string PageRouteTemplate => "{{primaryRoute.Template}}";
                     
                         /// <summary>
-                        /// All available route templates for the component, containing the string{{(page.Routes.Length > 0 ? "s" : "")}}: {{string.Join(", ", page.Routes.Select(static r => $"<c>\"{r.Template}\"</c>"))}}.
+                        /// All available route templates for the component, containing the string{{(page.Routes.Length > 1 ? "s" : "")}}: {{string.Join(", ", page.Routes.Select(static r => $"<c>\"{r.Template}\"</c>"))}}.
                         /// </summary>
                         public static IReadOnlyList<string> AllPageRouteTemplates { get; } = ImmutableArray.Create({{string.Join(", ", page.Routes.Select(static r => $"\"{r.Template}\""))}});
 
@@ -161,18 +158,19 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 {
                     var route = page.Routes[routeNumber - 1];
                     var routeId = isParameterless || page.Routes.Length != 1 ? routeNumber.ToString() : "";
-                    var parameters = string.Join(", ", route.Parameters.Select(static p => $"{p.TypeName}{(p.IsOptional || p.IsCatchAll ? "?" : "")} {p.Name}{(p.IsCatchAll ? " = null" : "")}"));
+                    var parameters = string.Join(", ", route.Parameters.Select(static p => $"{p.TypeName}{(p.IsOptional || p.IsCatchAll ? "?" : "")} {p.Name}{((p.IsOptional || p.IsCatchAll) ? " = null" : "")}"));
                     var returnValue = s_routeParameters.Replace(route.Template, static m =>
                     {
                         var name = m.Groups["name"].Value;
-                        return (m.Groups["type"].Value, m.Groups["optional"].Success || m.Groups["catchall"].Success) switch
+                        return (m.Groups["type"].Value, m.Groups["optional"].Success, m.Groups["catchall"].Success) switch
                         {
-                            ("string" or "", false) => $$"""/{Uri.EscapeDataString({{name}})}""",
-                            ("string" or "", true) => $$"""/{({{name}} == null ? null : Uri.EscapeDataString({{name}}))}""",
-                            ("bool", false) => $$"""/{({{name}} ? "true" : "false")}""",
-                            ("bool", true) => $$"""/{({{name}} == true ? "true" : {{name}} == false ? "false" : null)}""",
-                            ("datetime", false) => $$"""/{{{name}}.ToString({{name}}.TimeOfDay == default ? "yyyy-MM-dd" : "s")}""",
-                            ("datetime", true) => $$"""/{{{name}}?.ToString({{name}}.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}""",
+                            ("string" or "nonfile" or "", false, false) => $$"""/{Uri.EscapeDataString({{name}})}""",
+                            ("string" or "nonfile" or "", true, false) => $$"""/{({{name}} == null ? null : Uri.EscapeDataString({{name}}))}""",
+                            ("string" or "nonfile" or "", _, true) => $$"""/{({{name}} == null ? null : Uri.UnescapeDataString({{name}}))}""",
+                            ("bool", false, _) => $$"""/{({{name}} ? "true" : "false")}""",
+                            ("bool", true, _) => $$"""/{({{name}} == true ? "true" : {{name}} == false ? "false" : null)}""",
+                            ("datetime", false, _) => $$"""/{{{name}}.ToString({{name}}.TimeOfDay == default ? "yyyy-MM-dd" : "s")}""",
+                            ("datetime", true, _) => $$"""/{{{name}}?.ToString({{name}}.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}""",
                             _ => $"/{{{name}}}"
                         };
                     });

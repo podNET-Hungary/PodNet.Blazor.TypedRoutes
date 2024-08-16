@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\TypedRoutes\PodNet.Blazor.TypedRoutes.csproj" />
+		<ProjectReference Include="..\..\src\TypedRoutes.Generator\PodNet.Blazor.TypedRoutes.Generator.csproj" />
+		<PackageReference Include="DiffPlex" Version="1.7.2" />
+		<PackageReference Include="MSTest" Version="3.5.2" />
+		<!-- 
+			This package needs to be referenced directly. The version has to match in the tested project. 
+			The package reference there has to be kept private so that consumers won't be referencing 
+			the package in user code.
+		-->
+		<PackageReference Include="PodNet.Analyzers.Core" Version="1.0.14" />
+		<PackageReference Include="PodNet.Analyzers.Testing" Version="1.5.1" />
+		<PackageReference Include="PodNet.EmbeddedTexts" Version="1.2.1" />
+
+		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+		<Compile Remove="Cases\*\*" />
+		<AdditionalFiles Include="Cases\*\*" PodNet_EmbedTextDirectoryAsClass="true" />
+
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Cases\1_DefaultHappyPath\FetchData.razor" />
+	</ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 ﻿using PodNet.Analyzers.Equality;
 
-namespace PodNet.Blazor.TypedRoutes;
+namespace PodNet.Blazor.TypedRoutes.Generator;
 
 internal readonly record struct BuildInfo(
     string RootNamespace,

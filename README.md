@@ -169,7 +169,7 @@ You can find additional examples in the [TypedRoutes.Sample](https://github.com/
 You can simply clone the repo and test your scenario by adding/modifying components and routes to this project. Keep in mind, however, that this differs in a few key points from installing via NuGet:
 - The project is set to write all source generated code to the [Generated](https://github.com/podNET-Hungary/PodNet.Blazor.TypedRoutes/tree/main/src/TypedRoutes.Sample/Generated) folder. It is a good idea to delete the folder before doing a build this way to avoid any leftover files. This is only so that it is convenient to see the result of the generation on GitHub. It is not advised to store generated content this way in source control in app dev projects.
 - To see the result of the generation, you have to explicitly execute `Build` on the project via <kbd>F6</kbd> or `Build > Build > [Project]` / Right click > Build in Visual Studio, via command line or other means. This is NOT needed when referencing the NuGet package.
-- To view the generated code for your project in Visual Studio, navigate in Solution Explorer to your project's `Dependencies / Analyzers / PodNet.Blazor.TypedRoutes` node, where all generated files should be visible.
+- To view the generated code for your project in Visual Studio, navigate in Solution Explorer to your project's `Dependencies / Analyzers / PodNet.Blazor.TypedRoutes.Generator` node, where all generated files should be visible.
 
 ### Extensibility overview
 
