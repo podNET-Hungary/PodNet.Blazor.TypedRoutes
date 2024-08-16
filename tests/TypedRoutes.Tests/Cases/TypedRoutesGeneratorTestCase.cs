@@ -18,24 +18,35 @@ public class TypedRoutesGeneratorTestCase<T>(List<DiagnosticDescriptor>? expecte
                .AddReferences(MetadataReference.CreateFromFile(typeof(INavigableComponent).Assembly.Location))
                .AddImports("PodNet.Blazor.TypedRoutes", typeof(T).Name);
 
-    public string GlobalUsings { get; } = $"""
+    public SyntaxTree CommonTree { get; } = CSharpSyntaxTree.ParseText($$"""
         global using PodNet.Blazor.TypedRoutes;
-        global using {typeof(T).Name};
-        """;
+        global using {{typeof(T).Name}};
+
+        // Define the namespace so that it won't cause compilation errors
+        namespace {{typeof(T).Name}} { }
+
+        // Have to define the symbol so that the generator can pick it up in C# source.
+        namespace Microsoft.AspNetCore.Components
+        {
+            [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+            public class RouteAttribute(string template) : Attribute
+            {
+                public string Template { get; } = template;
+            }
+        }
+        """);
 
     public override CSharpCompilation CreateCompilation(ImmutableArray<SyntaxTree> syntaxTrees, ImmutableArray<AdditionalText> additionalFiles)
-        => base.CreateCompilation(syntaxTrees, additionalFiles)
+    {
+        var compilation = base.CreateCompilation(syntaxTrees, additionalFiles)
                .AddReferences(MetadataReference.CreateFromFile(typeof(INavigableComponent).Assembly.Location))
-               .AddSyntaxTrees(CSharpSyntaxTree.ParseText(additionalFiles.Where(f => f.Path.EndsWith(".razor")).ToList() switch
-               {
-                   // Adding a global usings for the INavigableComponent and IRoutableComponent interfaces and the test case
-                   { Count: 0 } => GlobalUsings,
-                   // Faking the partial component classes so they're public and not internal by default
-                   var razors => $"""
-                    {GlobalUsings}
-
+               .AddSyntaxTrees(CommonTree);
+        if (additionalFiles.Where(f => f.Path.EndsWith(".razor")).ToList() is { Count: > 0 } razors)
+            compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText($"""
+                    // Faking the partial component classes so they're public and not internal by default
                     namespace {typeof(T).Name};
                     {string.Join("\r\n", razors.Select(r => $"public partial class {Path.GetFileNameWithoutExtension(r.Path)}"))};
-                    """
-               }));
+                    """));
+        return compilation;
+    }
 }

@@ -15,7 +15,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
     private static readonly Regex s_namespaceDirective = new("^\\s*@namespace\\s+(?<namespace>[a-zA-Z_][a-zA-Z_0-9]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     private static readonly Regex s_typeparamDirective = new("^\\s*@typeparam\\s+(?<typeparam>[a-zA-Z_][a-zA-Z_0-9]*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     internal static readonly Regex s_routeParameters = new("/(?<parameter>{(?<catchall>\\*)?(?<name>.+?)(:(?<type>bool|datetime|decimal|double|float|guid|int|long|nonfile))?(?<optional>\\?)?})", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-    private static readonly DiagnosticDescriptor s_routedComponentShouldBePartialDescriptor = new("PN1501", "Make component partial", "Add the 'partial' modifier to the class {0} so that typed routes can be generated for it", "Design", DiagnosticSeverity.Warning, true);
+    public static DiagnosticDescriptor RoutedComponentShouldBePartialDescriptor { get; } = new("PN1501", "Make component partial", "Add the 'partial' modifier to the class {0} so that typed routes can be generated for it", "Design", DiagnosticSeverity.Warning, true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -33,7 +33,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 var className = symbol.Name;
                 var node = (ClassDeclarationSyntax)context.TargetNode;
                 if (!node.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)))
-                    return Diagnostic.Create(s_routedComponentShouldBePartialDescriptor, node.GetLocation(), className);
+                    return Diagnostic.Create(RoutedComponentShouldBePartialDescriptor, node.GetLocation(), className);
                 return new RouteInfo(
                     symbol.ContainingNamespace?.ToDisplayString() ?? "",
                     className,

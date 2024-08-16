@@ -15,17 +15,12 @@
 			the package in user code.
 		-->
 		<PackageReference Include="PodNet.Analyzers.Core" Version="1.0.14" />
-		<PackageReference Include="PodNet.Analyzers.Testing" Version="1.5.1" />
+		<PackageReference Include="PodNet.Analyzers.Testing" Version="1.5.2" />
 		<PackageReference Include="PodNet.EmbeddedTexts" Version="1.2.1" />
 
 		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-		<Compile Remove="Cases\*\*" />
-		<AdditionalFiles Include="Cases\*\*" PodNet_EmbedTextDirectoryAsClass="true" />
+		<Compile Remove="Cases\*\**\*" />
+		<AdditionalFiles Include="Cases\*\**\*" PodNet_EmbedTextDirectoryAsClass="true" />
 
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Cases\1_DefaultHappyPath\FetchData.razor" />
-	</ItemGroup>
-
 </Project>
