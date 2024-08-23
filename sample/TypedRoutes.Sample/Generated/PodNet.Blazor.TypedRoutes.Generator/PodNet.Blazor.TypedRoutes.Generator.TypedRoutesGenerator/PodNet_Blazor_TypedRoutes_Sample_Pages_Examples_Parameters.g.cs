@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 {
@@ -22,27 +23,27 @@ namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/parameters/{id:int}"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri1(int id) => $"/examples/parameters/{id}";
+        public static string PageUri1(int id) => Invariant($"/examples/parameters/{id}");
             
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/parameters/{category}/{id:int}"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri2(string category, int id) => $"/examples/parameters/{Uri.EscapeDataString(category)}/{id}";
+        public static string PageUri2(string category, int id) => Invariant($"/examples/parameters/{Uri.EscapeDataString(category)}/{id}");
             
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/parameters/{category}"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri3(string category) => $"/examples/parameters/{Uri.EscapeDataString(category)}";
+        public static string PageUri3(string category) => Invariant($"/examples/parameters/{Uri.EscapeDataString(category)}");
             
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/parameters/{from:datetime}/{to:datetime?}"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri4(DateTime from, DateTime? to) => $"/examples/parameters/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}";
+        public static string PageUri4(DateTime from, DateTime? to = null) => Invariant($"/examples/parameters/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}");
             
     }
 }

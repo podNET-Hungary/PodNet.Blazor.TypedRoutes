@@ -143,25 +143,25 @@ public static string PageUri => "/other-pages";
 /// Returns the URI for the page constructed from the template <c>"/items/{id}"</c> with
 /// the provided parameters.
 /// </summary>
-public static string PageUri1(string id) => $"/items/{Uri.EscapeDataString(id)}";
+public static string PageUri1(string id) => Invariant($"/items/{Uri.EscapeDataString(id)}");
         
 /// <summary>
 /// Returns the URI for the page constructed from the template <c>"/items/{category}/{id:int}"</c> with
 /// the provided parameters.
 /// </summary>
-public static string PageUri2(string category, int id) => $"/items/{Uri.EscapeDataString(category)}/{id}";
+public static string PageUri2(string category, int id) => Invariant($"/items/{Uri.EscapeDataString(category)}/{id}");
         
 /// <summary>
 /// Returns the URI for the page constructed from the template <c>"/items/{from:datetime}/{to:datetime?}"</c> with
 /// the provided parameters.
 /// </summary>
-public static string PageUri3(DateTime from, DateTime? to) => $"/items/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}";
+public static string PageUri3(DateTime from, DateTime? to) => Invariant($"/items/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}");
         
 /// <summary>
 /// Returns the URI for the page constructed from the template <c>"/other-pages/{*catchAll}"</c> with
 /// the provided parameters.
 /// </summary>
-public static string PageUri4(string? catchAll = null) => $"/other-pages/{(catchAll == null ? null : Uri.EscapeDataString(catchAll))}";
+public static string PageUri4(string? catchAll = null) => Invariant($"/other-pages/{(catchAll == null ? null : Uri.EscapeDataString(catchAll))}");
 ```
 
 Notice the following:
@@ -288,7 +288,7 @@ Additional notes and known limitations:
 
 - This is a small project ~~and testing it properly end-to-end would require an enterprise-grade setup and effort to match~~ (well, let's just say there is an enterprise grade setup in place now 😬). As such, you can try and use the package "as-is", but feel free to fork, contribute, help with features, report any bugs or just comment or request features. We hope you like it, and we do use it in production, but we take no responsibility or offer no guarantees for your usage of this package.
 - Lazy-loading support is untested. It works by default in most cases, but might not work in all cases out of the box. Specifically, lazy-loading assembly boundaries might result in the assembly containing the generated code be unavailable when referenced. You should try and avoid referencing code directly over lazy-loading assembly boundaries in general. If you have a specific request regarding this, we're listening.
-- The current formatting logic takes into account the type of the parameter: `string`s are escaped via `Uri.EscapeDataString` (as to prevent XSS; except for catch-alls, where you should take care yourself not to inject unsafe code into the parameter), and `DateTime`s either get formatted as `yyyy-MM-dd` or `s` (`2008-06-15T21:15:07`) depending on whether their TimeOfDay is set or not. Also, `bool` gets formatted as either `true` or `false`, as this is more common to see on the open web than `True` and `False` (hey, even the keywords are lowercased in C#, what is this, VB?). All other types (`decimal`, `double`, `float`, `guid`, `int`, `long`) simply get interpolated into the URI without modification, and thus, might depend on the current culture formatting, especially DateTime, which gets formatted with the culture-specific `s` format if the `Time` component is zero. Let us know if you need additional control over how the parameters are formatted in the constructed URI.
+- The current formatting logic takes into account the type of the parameter: `string`s are escaped via `Uri.EscapeDataString` (as to prevent XSS; except for catch-alls, where you should take care yourself not to inject unsafe code into the parameter), and `DateTime`s either get formatted as `yyyy-MM-dd` or `s` (`2008-06-15T21:15:07`) depending on whether their TimeOfDay is set or not. Also, `bool` gets formatted as either `true` or `false`, as this is more common to see on the open web than `True` and `False` (hey, even the keywords are lowercased in C#, what is this, VB?). All other types (`decimal`, `double`, `float`, `guid`, `int`, `long`) get interpolated into the URI without modification using the invariant culture. Let us know if you need additional control over how the parameters are formatted in the constructed URI. Also, see how route contraints are satisfied in the official docs: [ASP.NET Core Blazor routing and navigation # Route constraints | Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/routing#route-constraints)
 - The generation works by generating static members for the component type itself. It would be possible (quite easy, in fact) to move all generated members instead into a singular generated class, or multiple classes that mirror the namespace structure of the original components by their namespaces. However, we consider it more staightforward and logically coherent to assign the routes to the component type itself - after all, the `[Route]` attribute is put onto the type metadata as well, and that is a natural place one would look for this kind of information. Also, if you can already "see" a component type in code because it's namespace is in scope, you can simply access its URI as well. However, if you would need a different structure for the generated code, let's discuss it.
 - Invalid routes (eg. multiple catch-all parameters, invalid constraints, malformed strings) are not handled and might or might not emit helper code. Usually if you have invalid routes, the Razor tooling will let you know.
 - The generated code declares a primary `PageUri` URI if there is at least one route found with no parameters (or only optional parameters). If there are multiple routes or the only route has required parameters, additional methods are generated for each of the routes. These follow the pattern `PageUri{n}`, where `{n}` is a natural number incrementing starting from 1. We couldn't figure out a straightforward way to name multiple methods accordingly unless they are numbered, and overloading wouldn't work either as there could be collisions based on the parameters. The order of the generated members are ordered, as follows:

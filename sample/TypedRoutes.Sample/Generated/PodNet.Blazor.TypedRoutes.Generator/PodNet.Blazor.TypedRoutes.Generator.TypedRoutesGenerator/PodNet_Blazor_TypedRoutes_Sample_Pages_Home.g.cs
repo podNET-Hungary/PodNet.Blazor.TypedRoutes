@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace PodNet.Blazor.TypedRoutes.Sample.Pages
 {
@@ -16,7 +17,7 @@ namespace PodNet.Blazor.TypedRoutes.Sample.Pages
         public static string PageRouteTemplate => "/";
     
         /// <summary>
-        /// All available route templates for the component, containing the strings: <c>"/"</c>.
+        /// All available route templates for the component, containing the string: <c>"/"</c>.
         /// </summary>
         public static IReadOnlyList<string> AllPageRouteTemplates { get; } = ImmutableArray.Create("/");
 

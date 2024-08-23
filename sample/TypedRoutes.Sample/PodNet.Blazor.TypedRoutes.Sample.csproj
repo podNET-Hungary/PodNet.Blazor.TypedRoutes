@@ -4,7 +4,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-
+		<RestoreAdditionalProjectSources>$(ArtifactsPath)\package</RestoreAdditionalProjectSources>
 		<!-- We emit the files into the Generated folder instead of letting the compiler pick them up from a temp folder. This is only so that the demo works and shows the files being generated. -->
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
@@ -18,11 +18,11 @@
 		<EmbeddedResource Include="Pages\**" />
 		<EmbeddedResource Include="Generated\**" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.8" PrivateAssets="all" />
 
-		<!-- We reference the "live" package, just as if user code referenced it. -->
-		<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="1.0.0-beta6" />
+		<!-- This is a reference to the local package. To reference the live package, use the publicly available version at https://www.nuget.org/packages/PodNet.Blazor.TypedRoutes/ -->
+		<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="[0.0.0-debug]" />
 	</ItemGroup>
 
 	<Target Name="CleanGeneratedFolder" BeforeTargets="Restore;Clean">

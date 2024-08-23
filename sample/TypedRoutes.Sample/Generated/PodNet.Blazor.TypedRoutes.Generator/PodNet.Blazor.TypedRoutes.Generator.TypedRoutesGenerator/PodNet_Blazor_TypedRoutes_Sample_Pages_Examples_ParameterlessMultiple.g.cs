@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 {
@@ -27,15 +28,15 @@ namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/parameterless-multiple"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri1() => $"/examples/parameterless-multiple";
+        public static string PageUri1() => Invariant($"/examples/parameterless-multiple");
             
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/samples/multiple"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri2() => $"/samples/multiple";
+        public static string PageUri2() => Invariant($"/samples/multiple");
             
     }
 }

@@ -7,11 +7,13 @@ using System.Collections.Immutable;
 
 namespace PodNet.Blazor.TypedRoutes.Tests.Cases;
 
-public class TypedRoutesGeneratorTestCase<T>(List<DiagnosticDescriptor>? expectedDescriptorsForGenerator = null, bool ignoreSources = false) : EmbeddedTestCase<TypedRoutesGenerator, T>
+public class TypedRoutesGeneratorTestCase<T>(List<DiagnosticDescriptor>? expectedDescriptorsForGenerator = null, bool ignoreSources = false, bool fakePublicRazorPartials = true) : EmbeddedTestCase<TypedRoutesGenerator, T>
 {
     public TypedRoutesGeneratorTestCase(bool ignoreSources) : this(null, ignoreSources) { }
     public override bool IgnoreSources => ignoreSources;
     public override List<DiagnosticDescriptor>? ExpectedDescriptorsForGenerator => expectedDescriptorsForGenerator;
+    public bool FakePublicRazorPartials { get; } = fakePublicRazorPartials;
+
 
     public override ScriptOptions ConfigureScriptOptions(ScriptOptions options)
         => base.ConfigureScriptOptions(options)
@@ -23,7 +25,7 @@ public class TypedRoutesGeneratorTestCase<T>(List<DiagnosticDescriptor>? expecte
         global using {{typeof(T).Name}};
 
         // Define the namespace so that it won't cause compilation errors
-        namespace {{typeof(T).Name}} { }
+        namespace {{typeof(T).Name}} { public sealed class __AssemblyAnchor { } }
 
         // Have to define the symbol so that the generator can pick it up in C# source.
         namespace Microsoft.AspNetCore.Components
@@ -41,7 +43,7 @@ public class TypedRoutesGeneratorTestCase<T>(List<DiagnosticDescriptor>? expecte
         var compilation = base.CreateCompilation(syntaxTrees, additionalFiles)
                .AddReferences(MetadataReference.CreateFromFile(typeof(INavigableComponent).Assembly.Location))
                .AddSyntaxTrees(CommonTree);
-        if (additionalFiles.Where(f => f.Path.EndsWith(".razor")).ToList() is { Count: > 0 } razors)
+        if (FakePublicRazorPartials && additionalFiles.Where(f => f.Path.EndsWith(".razor")).ToList() is { Count: > 0 } razors)
             compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText($"""
                     // Faking the partial component classes so they're public and not internal by default
                     namespace {typeof(T).Name};

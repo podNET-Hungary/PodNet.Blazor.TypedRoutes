@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace _2_MultipleRoutes
 {
@@ -29,25 +30,25 @@ namespace _2_MultipleRoutes
         /// Returns the URI for the page constructed from the template <c>"/items/{id}"</c> with
         /// the provided parameters.
         /// </summary>
-        public static string PageUri1(string id) => $"/items/{Uri.EscapeDataString(id)}";
+        public static string PageUri1(string id) => Invariant($"/items/{Uri.EscapeDataString(id)}");
         
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/items/{category}/{id:int}"</c> with
         /// the provided parameters.
         /// </summary>
-        public static string PageUri2(string category, int id) => $"/items/{Uri.EscapeDataString(category)}/{id}";
+        public static string PageUri2(string category, int id) => Invariant($"/items/{Uri.EscapeDataString(category)}/{id}");
         
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/items/{from:datetime}/{to:datetime?}"</c> with
         /// the provided parameters.
         /// </summary>
-        public static string PageUri3(DateTime from, DateTime? to = null) => $"/items/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}";
+        public static string PageUri3(DateTime from, DateTime? to = null) => Invariant($"/items/{from.ToString(from.TimeOfDay == default ? "yyyy-MM-dd" : "s")}/{to?.ToString(to.Value.TimeOfDay == default ? "yyyy-MM-dd" : "s")}");
         
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/other-pages/{*catchAll}"</c> with
         /// the provided parameters.
         /// </summary>
-        public static string PageUri4(string? catchAll = null) => $"/other-pages/{(catchAll == null ? null : Uri.UnescapeDataString(catchAll))}";
+        public static string PageUri4(string? catchAll = null) => Invariant($"/other-pages/{(catchAll == null ? null : Uri.UnescapeDataString(catchAll))}");
     }
 }
 #nullable restore

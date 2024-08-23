@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace _2_PartialGeneratesAsExpected
 {

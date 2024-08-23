@@ -1,0 +1,11 @@
+﻿Assert.AreEqual("/p1/true", MyComponent.PageUri1(true));
+Assert.AreEqual("/p1/true", MyComponent.PageUri1(active: true));
+Assert.AreEqual("/p2/2000-01-01", MyComponent.PageUri2(new DateTime(2000, 01, 01)));
+Assert.AreEqual("/p3/7.101", MyComponent.PageUri3(7.101m));
+Assert.AreEqual("/p4/5.333", MyComponent.PageUri4(5.333d));
+Assert.AreEqual("/p5/4.12", MyComponent.PageUri5(4.12f));
+var g = Guid.NewGuid();
+Assert.AreEqual($"/p6/{g}", MyComponent.PageUri6(g));
+Assert.AreEqual("/p7/12345678", MyComponent.PageUri7(12345678));
+Assert.AreEqual("/p8/12345678", MyComponent.PageUri8(12345678l));
+Assert.AreEqual("/p9/not-a-file.ico", MyComponent.PageUri9("not-a-file.ico"));

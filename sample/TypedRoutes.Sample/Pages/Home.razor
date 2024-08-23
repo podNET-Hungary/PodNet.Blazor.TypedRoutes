@@ -17,7 +17,7 @@
         var route = item;
         <section class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button @(route.Show ? "" : "collapsed")" @onclick="() => { foreach(var c in _components.Where(c => c != route)) c.Show = false; route.Show = !route.Show; }">
+                <button class="accordion-button @(route.Show ? "" : "collapsed")" @onclick="@(() => { foreach(var c in _components.Where(c => c != route)) c.Show = false; route.Show = !route.Show; JSRuntime.InvokeVoidAsync("hljs.highlightAll"); })">
                     @route.ComponentName
                 </button>
             </h2>
@@ -25,11 +25,11 @@
                 <div class="row">
                     <div class="col-md-6">
                         <h3>Razor</h3>
-                        <pre style="white-space: pre-wrap"><code>@route.Razor</code></pre>
+                        <pre style="white-space: pre-wrap"><code class="language-razor">@route.Razor</code></pre>
                     </div>
                     <div class="col-md-6">
                         <h3>Generated</h3>
-                        <pre style="white-space: pre-wrap"><code>@route.Generated</code></pre>
+                        <pre style="white-space: pre-wrap"><code class="language-csharp">@route.Generated</code></pre>
                     </div>
                 </div>
             </div>
@@ -38,6 +38,8 @@
 </div>
 
 @code {
+    [Inject] public required IJSRuntime JSRuntime { get; set; }
+
     IReadOnlyList<TypedRoute>? _components;
 
     protected override void OnInitialized()
@@ -47,7 +49,7 @@
             if (component.FullName == null)
                 return null;
             var razorStream = GetType().Assembly.GetManifestResourceStream($"{component.FullName}.razor");
-            var generatedStream = GetType().Assembly.GetManifestResourceStream($"PodNet.Blazor.TypedRoutes.Sample.Generated.PodNet.Blazor.TypedRoutes.PodNet.Blazor.TypedRoutes.TypedRoutesGenerator.{component.FullName.Replace('.', '_')}.g.cs");
+            var generatedStream = GetType().Assembly.GetManifestResourceStream($"PodNet.Blazor.TypedRoutes.Sample.Generated.PodNet.Blazor.TypedRoutes.Generator.PodNet.Blazor.TypedRoutes.Generator.TypedRoutesGenerator.{component.FullName.Replace('.', '_')}.g.cs");
             var relativeName = component.FullName.Split("PodNet.Blazor.TypedRoutes.Sample.").ElementAtOrDefault(1);
             if (razorStream == null || generatedStream == null || string.IsNullOrWhiteSpace(relativeName))
                 return null;

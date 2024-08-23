@@ -13,9 +13,10 @@ public class TypedRoutesGenerator : IIncrementalGenerator
 {
     private static readonly Regex s_pageDirective = new("^\\s*@page\\s+\"(?<template>/.*)\"\\s*;?\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     private static readonly Regex s_namespaceDirective = new("^\\s*@namespace\\s+(?<namespace>[a-zA-Z_][a-zA-Z_0-9]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-    private static readonly Regex s_typeparamDirective = new("^\\s*@typeparam\\s+(?<typeparam>[a-zA-Z_][a-zA-Z_0-9]*)\\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+    private static readonly Regex s_typeparamDirective = new("^\\s*@typeparam\\s+(?<typeparam>[a-zA-Z_][a-zA-Z_0-9]*)\\s*", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
     internal static readonly Regex s_routeParameters = new("/(?<parameter>{(?<catchall>\\*)?(?<name>.+?)(:(?<type>bool|datetime|decimal|double|float|guid|int|long|nonfile))?(?<optional>\\?)?})", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-    public static DiagnosticDescriptor RoutedComponentShouldBePartialDescriptor { get; } = new("PN1501", "Make component partial", "Add the 'partial' modifier to the class {0} so that typed routes can be generated for it", "Design", DiagnosticSeverity.Warning, true);
+    private static readonly Regex hintNameSanitizer = new("[\\.<>]", RegexOptions.Compiled);
+    public static readonly DiagnosticDescriptor RoutedComponentShouldBePartialDescriptor = new("PN1501", "Make component partial", "Add the 'partial' modifier to the class {0} so that typed routes can be generated for it", "Design", DiagnosticSeverity.Warning, true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -31,6 +32,8 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 cancellationToken.ThrowIfCancellationRequested();
                 var symbol = (INamedTypeSymbol)context.TargetSymbol;
                 var className = symbol.Name;
+                if (symbol.TypeParameters is not [] typeParameters)
+                    className = $"{className}<{string.Join(", ", typeParameters.Select(t => t.Name))}>";
                 var node = (ClassDeclarationSyntax)context.TargetNode;
                 if (!node.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)))
                     return Diagnostic.Create(RoutedComponentShouldBePartialDescriptor, node.GetLocation(), className);
@@ -84,14 +87,16 @@ public class TypedRoutesGenerator : IIncrementalGenerator
             if (templates.Count == 0)
                 yield break;
 
-            if (@namespace == null && !string.IsNullOrWhiteSpace(input.Build.ProjectDirectory))
+            if (@namespace == null)
             {
-                var relativePath = PathProcessing.GetRelativePath(input.Build.ProjectDirectory, Path.GetDirectoryName(input.AdditionalText.Path) ?? ".");
-                @namespace = TextProcessing.GetNamespace(relativePath?.Length > 0 && !relativePath.StartsWith("..") ? $"{input.Build.RootNamespace}.{relativePath}" : input.Build.RootNamespace);
+                if (!string.IsNullOrWhiteSpace(input.Build.ProjectDirectory))
+                {
+                    var relativePath = PathProcessing.GetRelativePath(input.Build.ProjectDirectory, Path.GetDirectoryName(input.AdditionalText.Path) ?? ".");
+                    @namespace = TextProcessing.GetNamespace(relativePath?.Length > 0 && !relativePath.StartsWith("..") ? $"{input.Build.RootNamespace}.{relativePath}" : input.Build.RootNamespace);
+                }
+                else
+                    @namespace = input.Build.RootNamespace;
             }
-            else
-                @namespace = input.Build.RootNamespace;
-
             var @className = TextProcessing.GetClassName(Path.GetFileNameWithoutExtension(input.AdditionalText.Path));
             if (typeparams.Count > 0)
                 @className += $"<{string.Join(", ", typeparams)}>";
@@ -115,6 +120,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
                 using PodNet.Blazor.TypedRoutes;
+                using static System.FormattableString;
 
                 namespace {{page.Namespace}}
                 {
@@ -177,9 +183,9 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                     sourceBuilder.AppendLine($$"""
                         /// <summary>
                         /// Returns the URI for the page constructed from the template <c>"{{route.Template}}"</c> with
-                        /// the provided parameters.
+                        /// the provided parameters, using the invariant culture.
                         /// </summary>
-                        public static string PageUri{{routeId}}({{parameters}}) => $"{{returnValue}}";
+                        public static string PageUri{{routeId}}({{parameters}}) => Invariant($"{{returnValue}}");
                             
                 """);
                 }
@@ -191,7 +197,7 @@ public class TypedRoutesGenerator : IIncrementalGenerator
                 #nullable restore
                 """);
 
-            context.AddSource($"{$"{page.Namespace}_{page.ClassName}".Replace('.', '_')}.g.cs", sourceBuilder.ToString());
+            context.AddSource($"{hintNameSanitizer.Replace($"{page.Namespace}_{page.ClassName}", "_")}.g.cs", sourceBuilder.ToString());
         }
     }
 }

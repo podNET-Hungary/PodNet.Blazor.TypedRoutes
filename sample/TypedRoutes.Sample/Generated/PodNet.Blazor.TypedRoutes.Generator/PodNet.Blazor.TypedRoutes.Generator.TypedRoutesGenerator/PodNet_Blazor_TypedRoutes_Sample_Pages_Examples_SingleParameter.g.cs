@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using PodNet.Blazor.TypedRoutes;
+using static System.FormattableString;
 
 namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
 {
@@ -16,15 +17,15 @@ namespace PodNet.Blazor.TypedRoutes.Sample.Pages.Examples
         public static string PageRouteTemplate => "/examples/single-parameter/{stub}";
     
         /// <summary>
-        /// All available route templates for the component, containing the strings: <c>"/examples/single-parameter/{stub}"</c>.
+        /// All available route templates for the component, containing the string: <c>"/examples/single-parameter/{stub}"</c>.
         /// </summary>
         public static IReadOnlyList<string> AllPageRouteTemplates { get; } = ImmutableArray.Create("/examples/single-parameter/{stub}");
 
         /// <summary>
         /// Returns the URI for the page constructed from the template <c>"/examples/single-parameter/{stub}"</c> with
-        /// the provided parameters.
+        /// the provided parameters, using the invariant culture.
         /// </summary>
-        public static string PageUri(string stub) => $"/examples/single-parameter/{Uri.EscapeDataString(stub)}";
+        public static string PageUri(string stub) => Invariant($"/examples/single-parameter/{Uri.EscapeDataString(stub)}");
             
     }
 }

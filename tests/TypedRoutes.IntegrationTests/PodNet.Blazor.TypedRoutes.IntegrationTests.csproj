@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PodNet.Analyzers.Testing" Version="1.5.1" />
+		<PackageReference Include="PodNet.Analyzers.Testing" Version="1.5.3" />
 		<PackageReference Include="MSTest" Version="3.5.2" />
 
 		<!-- Take note that the NuGet package has to be packed before the integration tests are executed. -->
